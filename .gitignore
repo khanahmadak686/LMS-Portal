@@ -1,0 +1,21 @@
+# Dependency directories
+node_modules/
+
+# Environment variables (SABSE ZAROORI)
+.env
+.env.local
+
+# Build files
+client/dist/
+dist/
+build/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Editor directories and files
+.vscode/
+.idea/
+.DS_Store
