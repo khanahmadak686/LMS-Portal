@@ -28,15 +28,15 @@ const Profile = () => {
         
         // ✅ BULLETPROOF ROUTING FIX: Call specific APIs based strictly on Role
         if (user?.role === 'admin') {
-          response = await axios.get('http://localhost:5000/api/admin/courses', config);
+          response = await axios.get('https://lms-backend-api-ybnd.onrender.com/api/admin/courses', config);
           setCourses(response.data);
         } else if (user?.role === 'instructor') {
           // Instructor gets courses from dashboard endpoint
-          response = await axios.get('http://localhost:5000/api/instructor/dashboard', config);
+          response = await axios.get('https://lms-backend-api-ybnd.onrender.com/api/instructor/dashboard', config);
           setCourses(response.data.courses || []);
         } else {
           // Students get enrolled courses
-          response = await axios.get('http://localhost:5000/api/courses/enrolled', config);
+          response = await axios.get('https://lms-backend-api-ybnd.onrender.com/api/courses/enrolled', config);
           setCourses(response.data);
         }
       } catch (error) {
@@ -54,7 +54,7 @@ const Profile = () => {
     setLoading(true);
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const response = await axios.put('http://localhost:5000/api/auth/profile', {
+      const response = await axios.put('https://lms-backend-api-ybnd.onrender.com/api/auth/profile', {
         name, email, password: password ? password : undefined 
       }, config);
       updateUser(response.data); 

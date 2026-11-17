@@ -28,13 +28,13 @@ const AdminDashboard = () => {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
 
-        const statsResponse = await axios.get('http://localhost:5000/api/admin/stats', config);
+        const statsResponse = await axios.get('https://lms-backend-api-ybnd.onrender.com/api/admin/stats', config);
         setStats(statsResponse.data);
 
-        const instResponse = await axios.get('http://localhost:5000/api/admin/instructors', config);
+        const instResponse = await axios.get('https://lms-backend-api-ybnd.onrender.com/api/admin/instructors', config);
         setInstructors(instResponse.data);
 
-        const coursesResponse = await axios.get('http://localhost:5000/api/admin/courses', config);
+        const coursesResponse = await axios.get('https://lms-backend-api-ybnd.onrender.com/api/admin/courses', config);
         setCourses(coursesResponse.data);
 
       } catch (err) {

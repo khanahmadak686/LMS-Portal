@@ -3,8 +3,8 @@ import axios from 'axios';
 import io from 'socket.io-client';
 import { Send, MessageCircle, Info } from 'lucide-react';
 
-// ⚠️ Note for Deployment: Jab Render par live karein, toh 'http://localhost:5000' ki jagah apna Render URL daalein
-const socket = io('http://localhost:5000'); 
+// ⚠️ Note for Deployment: Jab Render par live karein, toh 'https://lms-backend-api-ybnd.onrender.com' ki jagah apna Render URL daalein
+const socket = io('https://lms-backend-api-ybnd.onrender.com'); 
 
 const CourseDiscussion = ({ courseId, user }) => {
   const [messages, setMessages] = useState([]);
@@ -16,7 +16,7 @@ const CourseDiscussion = ({ courseId, user }) => {
     const fetchMessages = async () => {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const response = await axios.get(`http://localhost:5000/api/messages/${courseId}`, config);
+        const response = await axios.get(`https://lms-backend-api-ybnd.onrender.com/api/messages/${courseId}`, config);
         setMessages(response.data);
       } catch (error) {
         console.error("Failed to load messages", error);

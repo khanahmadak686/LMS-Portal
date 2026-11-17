@@ -24,7 +24,7 @@ const CreateCourse = () => {
     if (isEditMode) {
       const fetchCourse = async () => {
         try {
-          const response = await axios.get(`http://localhost:5000/api/courses/${id}`);
+          const response = await axios.get(`https://lms-backend-api-ybnd.onrender.com/api/courses/${id}`);
           const course = response.data;
           
           if (course.instructor._id !== user._id) {
@@ -59,7 +59,7 @@ const CreateCourse = () => {
 
     setUploading(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/upload', uploadData, {
+      const response = await axios.post('https://lms-backend-api-ybnd.onrender.com/api/upload', uploadData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setFormData({ ...formData, thumbnail: response.data.url });
@@ -82,11 +82,11 @@ const CreateCourse = () => {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
       
       if (isEditMode) {
-        await axios.put(`http://localhost:5000/api/courses/${id}`, formData, config);
+        await axios.put(`https://lms-backend-api-ybnd.onrender.com/api/courses/${id}`, formData, config);
         toast.success('Course updated successfully!');
         navigate(`/course/${id}`);
       } else {
-        await axios.post('http://localhost:5000/api/courses', formData, config);
+        await axios.post('https://lms-backend-api-ybnd.onrender.com/api/courses', formData, config);
         toast.success('Course created successfully!');
         
         // ✅ BUG FIXED: Redirecting safely to /dashboard instead of a 404 page

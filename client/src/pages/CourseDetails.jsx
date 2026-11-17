@@ -35,7 +35,7 @@ const CourseDetails = () => {
   const [downloadingCert, setDownloadingCert] = useState(false);
 
   // 🟢 LIVE BACKEND URL SETUP
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+  const API_URL = import.meta.env.VITE_API_URL || "https://lms-backend-api-ybnd.onrender.com/api";
 
   const fetchCourseData = async () => {
     try {

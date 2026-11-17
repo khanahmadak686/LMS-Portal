@@ -15,10 +15,10 @@ const Dashboard = () => {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
         
         if (user.role === 'instructor') {
-          const response = await axios.get('http://localhost:5000/api/instructor/dashboard', config);
+          const response = await axios.get('https://lms-backend-api-ybnd.onrender.com/api/instructor/dashboard', config);
           setData(response.data);
         } else {
-          const response = await axios.get('http://localhost:5000/api/courses');
+          const response = await axios.get('https://lms-backend-api-ybnd.onrender.com/api/courses');
           setData(response.data); 
         }
       } catch (error) {
