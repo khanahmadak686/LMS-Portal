@@ -34,15 +34,18 @@ const CourseDetails = () => {
 
   const [downloadingCert, setDownloadingCert] = useState(false);
 
+  // 🟢 LIVE BACKEND URL SETUP
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
   const fetchCourseData = async () => {
     try {
       const config = user ? { headers: { Authorization: `Bearer ${user.token}` } } : {};
       const requests = [
-        axios.get(`http://localhost:5000/api/courses/${id}`),
-        axios.get(`http://localhost:5000/api/lessons/${id}`)
+        axios.get(`${API_URL}/courses/${id}`),
+        axios.get(`${API_URL}/lessons/${id}`)
       ];
       if (user) {
-        requests.push(axios.get(`http://localhost:5000/api/progress/${id}`, config));
+        requests.push(axios.get(`${API_URL}/progress/${id}`, config));
       }
 
       const responses = await Promise.all(requests);
@@ -68,7 +71,7 @@ const CourseDetails = () => {
     if (window.confirm("Are you sure you want to delete this entire course? This action cannot be undone.")) {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        await axios.delete(`http://localhost:5000/api/courses/${id}`, config);
+        await axios.delete(`${API_URL}/courses/${id}`, config);
         toast.success("Course deleted successfully");
         navigate('/dashboard');
       } catch (error) {
@@ -84,7 +87,7 @@ const CourseDetails = () => {
     setTimeout(async () => {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        await axios.post(`http://localhost:5000/api/courses/${id}/enroll`, {}, config);
+        await axios.post(`${API_URL}/courses/${id}/enroll`, {}, config);
         toast.success('Payment Successful! You are enrolled.');
         setShowCheckout(false);
         fetchCourseData(); 
@@ -100,7 +103,7 @@ const CourseDetails = () => {
   const markAsComplete = async (lessonId) => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.post('http://localhost:5000/api/progress/mark-complete', { courseId: id, lessonId: lessonId }, config);
+      await axios.post(`${API_URL}/progress/mark-complete`, { courseId: id, lessonId: lessonId }, config);
       setCompletedLessons([...completedLessons, lessonId]);
       toast.success('Lesson marked as complete! 🎉');
     } catch (error) {
@@ -117,7 +120,7 @@ const CourseDetails = () => {
         responseType: 'blob' 
       };
       
-      const response = await axios.get(`http://localhost:5000/api/progress/certificate/${id}`, config);
+      const response = await axios.get(`${API_URL}/progress/certificate/${id}`, config);
       
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
@@ -144,7 +147,7 @@ const CourseDetails = () => {
     if (type === 'video') setUploadingVideo(true);
     if (type === 'pdf') setUploadingPdf(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/upload', uploadData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const response = await axios.post(`${API_URL}/upload`, uploadData, { headers: { 'Content-Type': 'multipart/form-data' } });
       if (type === 'video') setVideoUrl(response.data.url);
       if (type === 'pdf') setPdfUrl(response.data.url);
       toast.success(`${type.toUpperCase()} uploaded to cloud!`);
@@ -162,7 +165,7 @@ const CourseDetails = () => {
     setAddingLesson(true);
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const response = await axios.post(`http://localhost:5000/api/lessons/${id}`, { title: lessonTitle, videoUrl: videoUrl, pdfUrl: pdfUrl }, config);
+      const response = await axios.post(`${API_URL}/lessons/${id}`, { title: lessonTitle, videoUrl: videoUrl, pdfUrl: pdfUrl }, config);
       toast.success('Lesson published successfully!');
       setLessons([...lessons, response.data]);
       setLessonTitle(''); setVideoUrl(''); setPdfUrl('');
