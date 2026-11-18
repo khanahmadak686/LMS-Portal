@@ -232,7 +232,19 @@ const CourseDetails = () => {
                   )}
 
                   {!isCourseOwner && !isEnrolled && (
-                    <button onClick={() => setShowCheckout(true)} style={{ padding: '1rem 2.5rem', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '0.5rem', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 15px rgba(79, 70, 229, 0.4)', transition: 'transform 0.2s' }} onMouseOver={(e)=>e.currentTarget.style.transform='scale(1.05)'} onMouseOut={(e)=>e.currentTarget.style.transform='scale(1)'}>
+                    <button 
+                      onClick={() => {
+                        if (!user) {
+                          toast.error("Please log in or sign up to enroll!");
+                          navigate('/login');
+                        } else {
+                          setShowCheckout(true);
+                        }
+                      }} 
+                      style={{ padding: '1rem 2.5rem', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '0.5rem', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 15px rgba(79, 70, 229, 0.4)', transition: 'transform 0.2s' }} 
+                      onMouseOver={(e)=>e.currentTarget.style.transform='scale(1.05)'} 
+                      onMouseOut={(e)=>e.currentTarget.style.transform='scale(1)'}
+                    >
                       Enroll Now
                     </button>
                   )}
@@ -401,56 +413,59 @@ const CourseDetails = () => {
         )}
       </div>
 
-      {/* 💳 CINEMATIC PAYMENT GATEWAY MODAL */}
+      {/* 💳 OPTIMIZED CINEMATIC PAYMENT GATEWAY MODAL */}
       {showCheckout && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
-          <div style={{ background: '#ffffff', borderRadius: '1.5rem', width: '100%', maxWidth: '450px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', animation: 'slideUp 0.3s ease-out' }}>
-            <div style={{ background: '#f8fafc', padding: '1.5rem 2rem', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-              <CreditCard size={28} color="#4f46e5" />
+          <div style={{ background: '#ffffff', borderRadius: '1.25rem', width: '100%', maxWidth: '380px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', animation: 'slideUp 0.3s ease-out' }}>
+            
+            {/* Header */}
+            <div style={{ background: '#f8fafc', padding: '1.25rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+              <CreditCard size={24} color="#4f46e5" />
               <div>
-                <h3 style={{ margin: 0, color: '#0f172a' }}>Secure Enrollment</h3>
-                <p style={{ margin: 0, color: '#64748b', fontSize: '0.85rem' }}>Test Environment</p>
+                <h3 style={{ margin: 0, color: '#0f172a', fontSize: '1.1rem' }}>Secure Enrollment</h3>
+                <p style={{ margin: 0, color: '#64748b', fontSize: '0.8rem' }}>Test Environment</p>
               </div>
             </div>
             
-            <div style={{ padding: '2rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem', borderBottom: '1px dashed #cbd5e1', paddingBottom: '1rem' }}>
+            {/* Body */}
+            <div style={{ padding: '1.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', borderBottom: '1px dashed #cbd5e1', paddingBottom: '1rem' }}>
                 <div style={{ flex: 1, paddingRight: '1rem' }}>
-                  <span style={{ color: '#64748b', fontSize: '0.9rem', display: 'block' }}>Course</span>
-                  <span style={{ fontWeight: '600', color: '#1e293b', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{course.title}</span>
+                  <span style={{ color: '#64748b', fontSize: '0.8rem', display: 'block' }}>Course</span>
+                  <span style={{ fontWeight: '600', color: '#1e293b', fontSize: '0.9rem', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{course.title}</span>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <span style={{ color: '#64748b', fontSize: '0.9rem', display: 'block' }}>Total</span>
-                  <span style={{ fontWeight: '800', fontSize: '1.3rem', color: '#4f46e5' }}>₹{course.price}</span>
+                  <span style={{ color: '#64748b', fontSize: '0.8rem', display: 'block' }}>Total</span>
+                  <span style={{ fontWeight: '800', fontSize: '1.2rem', color: '#4f46e5' }}>₹{course.price}</span>
                 </div>
               </div>
               
               <form onSubmit={handlePaymentSubmit}>
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#475569', marginBottom: '0.5rem', fontWeight: '600' }}>Cardholder Name</label>
-                  <input type="text" value={checkoutData.name} onChange={(e) => setCheckoutData({...checkoutData, name: e.target.value})} required style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#f8fafc', outline: 'none' }} onFocus={(e)=>e.target.style.borderColor='#4f46e5'} onBlur={(e)=>e.target.style.borderColor='#cbd5e1'} />
+                <div style={{ marginBottom: '1.2rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#475569', marginBottom: '0.4rem', fontWeight: '600' }}>Cardholder Name</label>
+                  <input type="text" value={checkoutData.name} onChange={(e) => setCheckoutData({...checkoutData, name: e.target.value})} required style={{ width: '100%', padding: '0.7rem 1rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '0.9rem', outline: 'none' }} onFocus={(e)=>e.target.style.borderColor='#4f46e5'} onBlur={(e)=>e.target.style.borderColor='#cbd5e1'} />
                 </div>
                 
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#475569', marginBottom: '0.5rem', fontWeight: '600' }}>Card Number (Dummy)</label>
-                  <input type="text" placeholder="0000 0000 0000 0000" maxLength="16" value={checkoutData.cardNumber} onChange={(e) => setCheckoutData({...checkoutData, cardNumber: e.target.value})} required style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#f8fafc', outline: 'none', letterSpacing: '2px', fontFamily: 'monospace', fontSize: '1.1rem' }} onFocus={(e)=>e.target.style.borderColor='#4f46e5'} onBlur={(e)=>e.target.style.borderColor='#cbd5e1'} />
+                <div style={{ marginBottom: '1.2rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#475569', marginBottom: '0.4rem', fontWeight: '600' }}>Card Number (Dummy)</label>
+                  <input type="text" placeholder="0000 0000 0000 0000" maxLength="16" value={checkoutData.cardNumber} onChange={(e) => setCheckoutData({...checkoutData, cardNumber: e.target.value})} required style={{ width: '100%', padding: '0.7rem 1rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#f8fafc', outline: 'none', letterSpacing: '1.5px', fontFamily: 'monospace', fontSize: '1rem' }} onFocus={(e)=>e.target.style.borderColor='#4f46e5'} onBlur={(e)=>e.target.style.borderColor='#cbd5e1'} />
                 </div>
                 
-                <div style={{ display: 'flex', gap: '1rem', marginBottom: '2.5rem' }}>
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
                   <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#475569', marginBottom: '0.5rem', fontWeight: '600' }}>Expiry</label>
-                    <input type="text" placeholder="MM/YY" maxLength="5" required style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#f8fafc', outline: 'none' }} onFocus={(e)=>e.target.style.borderColor='#4f46e5'} onBlur={(e)=>e.target.style.borderColor='#cbd5e1'} />
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#475569', marginBottom: '0.4rem', fontWeight: '600' }}>Expiry</label>
+                    <input type="text" placeholder="MM/YY" maxLength="5" required style={{ width: '100%', padding: '0.7rem 1rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '0.9rem', outline: 'none' }} onFocus={(e)=>e.target.style.borderColor='#4f46e5'} onBlur={(e)=>e.target.style.borderColor='#cbd5e1'} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#475569', marginBottom: '0.5rem', fontWeight: '600' }}>CVV</label>
-                    <input type="password" placeholder="***" maxLength="3" required style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#f8fafc', outline: 'none' }} onFocus={(e)=>e.target.style.borderColor='#4f46e5'} onBlur={(e)=>e.target.style.borderColor='#cbd5e1'} />
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#475569', marginBottom: '0.4rem', fontWeight: '600' }}>CVV</label>
+                    <input type="password" placeholder="***" maxLength="3" required style={{ width: '100%', padding: '0.7rem 1rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '0.9rem', outline: 'none' }} onFocus={(e)=>e.target.style.borderColor='#4f46e5'} onBlur={(e)=>e.target.style.borderColor='#cbd5e1'} />
                   </div>
                 </div>
                 
-                <button type="submit" disabled={processingPayment} style={{ width: '100%', padding: '1.2rem', background: '#0f172a', color: 'white', border: 'none', borderRadius: '0.5rem', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', transition: 'background 0.2s' }} onMouseOver={(e)=>e.currentTarget.style.background='#1e293b'} onMouseOut={(e)=>e.currentTarget.style.background='#0f172a'}>
-                  {processingPayment ? <><Loader2 size={22} style={{animation: 'spin 1s linear infinite'}}/> Processing...</> : <><Lock size={18}/> Pay ₹{course.price}</>}
+                <button type="submit" disabled={processingPayment} style={{ width: '100%', padding: '0.8rem', background: '#0f172a', color: 'white', border: 'none', borderRadius: '0.5rem', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', transition: 'background 0.2s' }} onMouseOver={(e)=>e.currentTarget.style.background='#1e293b'} onMouseOut={(e)=>e.currentTarget.style.background='#0f172a'}>
+                  {processingPayment ? <><Loader2 size={18} style={{animation: 'spin 1s linear infinite'}}/> Processing...</> : <><Lock size={16}/> Pay ₹{course.price}</>}
                 </button>
-                <button type="button" onClick={() => setShowCheckout(false)} disabled={processingPayment} style={{ width: '100%', marginTop: '1rem', padding: '1rem', background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', fontWeight: '600', transition: 'color 0.2s' }} onMouseOver={(e)=>e.currentTarget.style.color='#0f172a'} onMouseOut={(e)=>e.currentTarget.style.color='#64748b'}>
+                <button type="button" onClick={() => setShowCheckout(false)} disabled={processingPayment} style={{ width: '100%', marginTop: '0.5rem', padding: '0.8rem', background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem', transition: 'color 0.2s' }} onMouseOver={(e)=>e.currentTarget.style.color='#0f172a'} onMouseOut={(e)=>e.currentTarget.style.color='#64748b'}>
                   Cancel
                 </button>
               </form>

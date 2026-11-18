@@ -7,6 +7,7 @@ import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Pages
+import Home from './pages/Home'; // ✅ Naya Home Page Import
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -33,7 +34,7 @@ const NotFound = () => (
       borderRadius: '0.5rem', textDecoration: 'none', fontWeight: '600',
       boxShadow: '0 4px 6px rgba(79, 70, 229, 0.25)', transition: 'transform 0.2s'
     }}>
-      Back to Dashboard
+      Back to Home
     </Link>
   </div>
 );
@@ -48,23 +49,20 @@ function App() {
       <Navbar />
 
       <Routes>
-        {/* 🚀 DEFAULT ROUTE */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        {/* 🚀 DEFAULT ROUTE (Ab seedha Home Page khulega) */}
+        <Route path="/" element={<Home />} />
 
         {/* 🔓 PUBLIC ROUTES (Accessible without login) */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        
+        {/* 🔓 COURSE DETAILS PUBLIC HAI (Taki bina login courses dekh sakein) */}
+        <Route path="/course/:id" element={<CourseDetails />} />
 
         {/* 🛡️ GENERAL PROTECTED ROUTES (For All Logged-in Users) */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <Dashboard />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/course/:id" element={
-          <ProtectedRoute>
-            <CourseDetails />
           </ProtectedRoute>
         } />
         

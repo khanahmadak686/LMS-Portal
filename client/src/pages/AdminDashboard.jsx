@@ -2,15 +2,17 @@ import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast'; // Notification ke liye add kiya
 
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis,
-  CartesianGrid, Tooltip, Legend, ResponsiveContainer
+  CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 
 import {
   Users, BookOpen, DollarSign, TrendingUp, Shield, 
-  Loader2, AlertCircle, ChevronRight, MoreVertical
+  Loader2, AlertCircle, ChevronRight, MoreVertical, 
+  UserCheck, ArrowUpCircle // Naye icons add kiye
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -19,31 +21,37 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [courses, setCourses] = useState([]);
   const [instructors, setInstructors] = useState([]);
+  const [usersList, setUsersList] = useState([]); // Users store karne ke liye
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const API_URL = "https://lms-backend-api-ybnd.onrender.com/api";
+
+  const fetchAdminData = async () => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+
+      const [statsRes, instRes, coursesRes, usersRes] = await Promise.all([
+        axios.get(`${API_URL}/admin/stats`, config),
+        axios.get(`${API_URL}/admin/instructors`, config),
+        axios.get(`${API_URL}/admin/courses`, config),
+        axios.get(`${API_URL}/admin/users`, config) // Saare users fetch kiye
+      ]);
+
+      setStats(statsRes.data);
+      setInstructors(instRes.data);
+      setCourses(coursesRes.data);
+      setUsersList(usersRes.data);
+
+    } catch (err) {
+      setError('Failed to fetch admin data. Ensure you have admin privileges.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchAdminData = async () => {
-      try {
-        const config = { headers: { Authorization: `Bearer ${user.token}` } };
-
-        const statsResponse = await axios.get('https://lms-backend-api-ybnd.onrender.com/api/admin/stats', config);
-        setStats(statsResponse.data);
-
-        const instResponse = await axios.get('https://lms-backend-api-ybnd.onrender.com/api/admin/instructors', config);
-        setInstructors(instResponse.data);
-
-        const coursesResponse = await axios.get('https://lms-backend-api-ybnd.onrender.com/api/admin/courses', config);
-        setCourses(coursesResponse.data);
-
-      } catch (err) {
-        setError('Failed to fetch admin data. Ensure you have admin privileges.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (user?.token) {
       fetchAdminData();
     } else {
@@ -51,6 +59,21 @@ const AdminDashboard = () => {
       setError('Please login to access admin dashboard.');
     }
   }, [user]);
+
+  // 🚀 ADMIN ACTION: Change user role without opening DB
+  const handleRoleChange = async (userId, newRole) => {
+    if (window.confirm(`Are you sure you want to approve this user as an ${newRole}?`)) {
+      try {
+        const config = { headers: { Authorization: `Bearer ${user.token}` } };
+        await axios.put(`${API_URL}/admin/users/${userId}/role`, { role: newRole }, config);
+        
+        toast.success(`User successfully upgraded to ${newRole}!`);
+        fetchAdminData(); // Background mein list refresh karega
+      } catch (error) {
+        toast.error("Failed to update user role");
+      }
+    }
+  };
 
   // 🟢 1. PREMIUM LOADING STATE
   if (loading) return (
@@ -117,7 +140,7 @@ const AdminDashboard = () => {
           <StatCard title="Total Revenue" value={`₹${(stats.totalRevenue || 0).toLocaleString('en-IN')}`} icon={<DollarSign size={28} />} color="#10b981" />
           <StatCard title="Total Enrollments" value={stats.totalEnrollments || 0} icon={<TrendingUp size={28} />} color="#3b82f6" />
           <StatCard title="Active Courses" value={stats.totalCourses || 0} icon={<BookOpen size={28} />} color="#f59e0b" />
-          <StatCard title="Total Students" value={stats.totalUsers || 0} icon={<Users size={28} />} color="#8b5cf6" />
+          <StatCard title="Total Students" value={stats.totalStudents || 0} icon={<Users size={28} />} color="#8b5cf6" />
           <StatCard title="Total Instructors" value={stats.totalInstructors || 0} icon={<Shield size={28} />} color="#ef4444" />
         </div>
 
@@ -155,7 +178,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* 🟢 4. ENHANCED LISTS (Courses & Instructors) */}
-        <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', marginBottom: '3rem' }}>
           
           {/* Courses List */}
           <div style={{ flex: '1 1 500px', background: '#ffffff', padding: '2rem', borderRadius: '1rem', border: '1px solid #f1f5f9', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
@@ -163,14 +186,13 @@ const AdminDashboard = () => {
               <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a' }}>
                 <BookOpen size={22} color="#f59e0b" /> Manage Courses
               </h3>
-              <span style={{ fontSize: '0.85rem', color: '#dc2626', fontWeight: '600', cursor: 'pointer' }}>View All</span>
             </div>
             
             {courses.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>No courses found.</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                {courses.slice(0, 5).map(course => ( // Showing only top 5 for neat dashboard look
+                {courses.slice(0, 5).map(course => (
                   <Link to={`/course/${course._id}`} key={course._id} style={{ 
                     display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.8rem', 
                     border: '1px solid #e2e8f0', borderRadius: '0.5rem', textDecoration: 'none', color: 'inherit',
@@ -198,7 +220,6 @@ const AdminDashboard = () => {
               <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a' }}>
                 <Shield size={22} color="#ef4444" /> Instructors Directory
               </h3>
-              <span style={{ fontSize: '0.85rem', color: '#dc2626', fontWeight: '600', cursor: 'pointer' }}>View All</span>
             </div>
 
             {instructors.length === 0 ? (
@@ -231,7 +252,65 @@ const AdminDashboard = () => {
               </div>
             )}
           </div>
+        </div>
 
+        {/* 🟢 5. USER MANAGEMENT TABLE (Role Approvals) */}
+        <div style={{ background: '#ffffff', padding: '2rem', borderRadius: '1rem', border: '1px solid #f1f5f9', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a' }}>
+              <UserCheck size={24} color="#10b981" /> User Management & Approvals
+            </h3>
+          </div>
+          
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                  <th style={{ padding: '1rem', color: '#475569', fontWeight: '600' }}>Name</th>
+                  <th style={{ padding: '1rem', color: '#475569', fontWeight: '600' }}>Email</th>
+                  <th style={{ padding: '1rem', color: '#475569', fontWeight: '600' }}>Role</th>
+                  <th style={{ padding: '1rem', color: '#475569', fontWeight: '600' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {usersList.map((u) => (
+                  <tr key={u._id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '1rem', color: '#1e293b', fontWeight: '600' }}>{u.name}</td>
+                    <td style={{ padding: '1rem', color: '#64748b' }}>{u.email}</td>
+                    <td style={{ padding: '1rem' }}>
+                      <span style={{ 
+                        background: u.role === 'admin' ? '#fef08a' : u.role === 'instructor' ? '#bbf7d0' : '#e0e7ff', 
+                        color: u.role === 'admin' ? '#854d0e' : u.role === 'instructor' ? '#166534' : '#3730a3', 
+                        padding: '0.3rem 0.8rem', borderRadius: '50px', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'capitalize' 
+                      }}>
+                        {u.role}
+                      </span>
+                    </td>
+                    <td style={{ padding: '1rem' }}>
+                      {/* Show Approval Button ONLY for Students */}
+                      {u.role === 'student' ? (
+                        <button 
+                          onClick={() => handleRoleChange(u._id, 'instructor')}
+                          style={{ padding: '0.5rem 1rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'background 0.2s' }}
+                          onMouseOver={(e)=>e.currentTarget.style.background='#059669'}
+                          onMouseOut={(e)=>e.currentTarget.style.background='#10b981'}
+                        >
+                          <ArrowUpCircle size={16} /> Make Instructor
+                        </button>
+                      ) : (
+                        <span style={{ color: '#94a3b8', fontSize: '0.85rem', fontWeight: '500' }}>No action needed</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {usersList.length === 0 && (
+                  <tr>
+                    <td colSpan="4" style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>No users found in database.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
       </div>
