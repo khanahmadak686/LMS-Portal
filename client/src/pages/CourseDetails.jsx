@@ -34,8 +34,10 @@ const CourseDetails = () => {
 
   const [downloadingCert, setDownloadingCert] = useState(false);
 
-  // 🟢 LIVE BACKEND URL SETUP
-  const API_URL = import.meta.env.VITE_API_URL || "https://lms-backend-api-ybnd.onrender.com/api";
+  const rawApiUrl = import.meta.env.VITE_API_URL || "https://lms-backend-api-ybnd.onrender.com/api";
+  const API_URL = rawApiUrl
+    .replace(/^https?:\/(?!\/)/, (match) => match + '/')
+    .replace(/\/$/, '');
 
   const fetchCourseData = async () => {
     try {
@@ -83,7 +85,7 @@ const CourseDetails = () => {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
         await axios.delete(`${API_URL}/courses/${id}`, config);
         toast.success("Course deleted successfully");
-        navigate(user?.role === 'admin' ? '/admin' : '/dashboard');
+        navigate(user?.role === 'admin' ? '/admin' : '/');
       } catch (error) {
         toast.error(error.response?.data?.message || "Failed to delete course");
       }
@@ -186,7 +188,6 @@ const CourseDetails = () => {
     }
   };
 
-  // 🟢 PREMIUM LOADING STATE
   if (loading) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
       <Loader2 size={48} color="#4f46e5" style={{ animation: 'spin 1s linear infinite', marginBottom: '1rem' }} />
@@ -200,7 +201,7 @@ const CourseDetails = () => {
       <div style={{ textAlign: 'center', padding: '5rem 2rem' }}>
         <h2 style={{ color: '#1e293b', marginBottom: '1rem' }}>Course not found.</h2>
         <Link to="/" style={{ color: '#4f46e5', fontWeight: '600', textDecoration: 'none' }}>
-          ← Return to Home
+          ← Back to Explore
         </Link>
       </div>
     );
@@ -212,13 +213,13 @@ const CourseDetails = () => {
   const courseInstructorId = typeof course.instructor === 'object' ? course.instructor?._id : course.instructor;
   const isCourseOwner = user?._id === courseInstructorId || user?.role === 'admin';
   const progressPercentage = lessons.length === 0 ? 0 : Math.round((completedLessons.length / lessons.length) * 100);
-  const backLink = !user ? '/' : user.role === 'admin' ? '/admin' : '/dashboard';
-  const backLabel = !user ? 'Back to Home' : user.role === 'admin' ? 'Back to Admin Panel' : 'Back to Dashboard';
+  const backLink = user?.role === 'admin' ? '/admin' : '/';
+  const backLabel = user?.role === 'admin' ? 'Back to Admin Panel' : 'Back to Explore';
 
   return (
     <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh', paddingBottom: '4rem' }}>
       
-      {/* 🚀 HERO SECTION (Dark Premium Theme) */}
+      {/* 🚀 HERO SECTION */}
       <div style={{ background: 'linear-gradient(to right, #0f172a, #1e293b)', color: 'white', padding: '3rem 5%', borderBottom: '4px solid #4f46e5' }}>
         <div style={{ width: '100%', maxWidth: '1100px', margin: '0 auto' }}>
           
@@ -437,12 +438,11 @@ const CourseDetails = () => {
         )}
       </div>
 
-      {/* 💳 OPTIMIZED CINEMATIC PAYMENT GATEWAY MODAL */}
+      {/* 💳 PAYMENT GATEWAY MODAL */}
       {showCheckout && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
           <div style={{ background: '#ffffff', borderRadius: '1.25rem', width: '100%', maxWidth: '380px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', animation: 'slideUp 0.3s ease-out' }}>
             
-            {/* Header */}
             <div style={{ background: '#f8fafc', padding: '1.25rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
               <CreditCard size={24} color="#4f46e5" />
               <div>
@@ -451,7 +451,6 @@ const CourseDetails = () => {
               </div>
             </div>
             
-            {/* Body */}
             <div style={{ padding: '1.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', borderBottom: '1px dashed #cbd5e1', paddingBottom: '1rem' }}>
                 <div style={{ flex: 1, paddingRight: '1rem' }}>

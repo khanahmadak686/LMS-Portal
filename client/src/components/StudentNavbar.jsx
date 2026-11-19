@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Compass, BookHeart, Home } from 'lucide-react';
+import { BookOpen, Compass, BookHeart } from 'lucide-react';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 
@@ -8,7 +8,7 @@ const StudentNavbar = () => {
   const location = useLocation();
 
   const getLinkStyle = (path) => {
-    const isActive = location.pathname === path;
+    const isActive = location.pathname === path || (path === '/' && location.pathname === '/dashboard');
     return {
       display: 'flex',
       alignItems: 'center',
@@ -57,10 +57,6 @@ const StudentNavbar = () => {
       <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
         
         <Link to="/" style={getLinkStyle('/')}>
-          <Home size={18}/> Home
-        </Link>
-
-        <Link to="/dashboard" style={getLinkStyle('/dashboard')}>
           <Compass size={18}/> Explore
         </Link>
         

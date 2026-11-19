@@ -24,18 +24,16 @@ connectDB();
 
 const app = express();
 
-// ✅ 1. Dynamic CORS Setup (Localhost + All Vercel Deployments)
+// ✅ 1. Dynamic CORS Setup (Localhost + Production & Preview Vercel URLs)
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://lms-portal-ochre.vercel.app",
-  "https://lms-portal-dhhjbwsse-khanahmadak686s-projects.vercel.app"
+  "https://lms-portal-drab.vercel.app",
+  "https://lms-portal-ochre.vercel.app"
 ];
 
 const corsOriginHandler = (origin, callback) => {
-  // Allow requests with no origin (like mobile apps, curl, Postman)
   if (!origin) return callback(null, true);
 
-  // Allow exact listed origins OR any Vercel preview/production domain for this project
   if (
     allowedOrigins.includes(origin) ||
     origin.endsWith('.vercel.app')

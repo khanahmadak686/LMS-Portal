@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, Link } from 'react-router-dom';
+import { Routes, Route, Link } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AlertCircle } from 'lucide-react';
 
@@ -7,7 +7,6 @@ import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Pages
-import Home from './pages/Home'; // ✅ Naya Home Page Import
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -34,7 +33,7 @@ const NotFound = () => (
       borderRadius: '0.5rem', textDecoration: 'none', fontWeight: '600',
       boxShadow: '0 4px 6px rgba(79, 70, 229, 0.25)', transition: 'transform 0.2s'
     }}>
-      Back to Home
+      Back to Explore
     </Link>
   </div>
 );
@@ -49,23 +48,16 @@ function App() {
       <Navbar />
 
       <Routes>
-        {/* 🚀 DEFAULT ROUTE (Ab seedha Home Page khulega) */}
-        <Route path="/" element={<Home />} />
+        {/* 🚀 MAIN LANDING / EXPLORE PAGE (Public for Guests + Logged-in Users) */}
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
 
-        {/* 🔓 PUBLIC ROUTES (Accessible without login) */}
+        {/* 🔓 PUBLIC ROUTES */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        
-        {/* 🔓 COURSE DETAILS PUBLIC HAI (Taki bina login courses dekh sakein) */}
         <Route path="/course/:id" element={<CourseDetails />} />
 
-        {/* 🛡️ GENERAL PROTECTED ROUTES (For All Logged-in Users) */}
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        } />
-        
+        {/* 🛡️ PROTECTED ROUTES */}
         <Route path="/profile" element={
           <ProtectedRoute>
             <Profile />
@@ -79,7 +71,7 @@ function App() {
           </ProtectedRoute>
         } />
 
-        {/* 👨‍🏫 INSTRUCTOR & ADMIN ROUTES (Course Creation/Editing) */}
+        {/* 👨‍🏫 INSTRUCTOR & ADMIN ROUTES */}
         <Route path="/create-course" element={
           <ProtectedRoute allowedRoles={['admin', 'instructor']}>
             <CreateCourse />

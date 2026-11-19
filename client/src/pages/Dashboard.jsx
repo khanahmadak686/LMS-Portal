@@ -8,32 +8,42 @@ const Dashboard = () => {
   const { user } = useContext(AuthContext);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const rawApiUrl = import.meta.env.VITE_API_URL || "https://lms-backend-api-ybnd.onrender.com/api";
+  const API_URL = rawApiUrl
+    .replace(/^https?:\/(?!\/)/, (match) => match + '/')
+    .replace(/\/$/, '');
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        
-        if (user.role === 'instructor') {
-          const response = await axios.get('https://lms-backend-api-ybnd.onrender.com/api/instructor/dashboard', config);
+        if (user?.role === 'instructor') {
+          const config = { headers: { Authorization: `Bearer ${user.token}` } };
+          const response = await axios.get(`${API_URL}/instructor/dashboard`, config);
           setData(response.data);
         } else {
-          const response = await axios.get('https://lms-backend-api-ybnd.onrender.com/api/courses');
-          setData(response.data); 
+          const response = await axios.get(`${API_URL}/courses`);
+          const coursesList = Array.isArray(response.data)
+            ? response.data
+            : response.data?.courses || [];
+          setData(coursesList);
         }
       } catch (error) {
-        console.error("Error fetching dashboard", error);
+        console.error("Error fetching dashboard:", error);
+        setData(user?.role === 'instructor' ? { courses: [] } : []);
       } finally {
         setLoading(false);
       }
     };
     fetchDashboardData();
-  }, [user]);
+  }, [user, API_URL]);
 
   if (loading) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', backgroundColor: '#f8fafc' }}>
-      <Loader2 size={48} color={user.role === 'instructor' ? '#10b981' : '#4f46e5'} style={{ animation: 'spin 1s linear infinite', marginBottom: '1rem' }} />
-      <h3 style={{ color: '#4b5563' }}>Loading your workspace...</h3>
+      <Loader2 size={48} color={user?.role === 'instructor' ? '#10b981' : '#4f46e5'} style={{ animation: 'spin 1s linear infinite', marginBottom: '1rem' }} />
+      <h3 style={{ color: '#4b5563' }}>Loading courses...</h3>
       <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
     </div>
   );
@@ -58,16 +68,27 @@ const Dashboard = () => {
     </div>
   );
 
+  const isInstructor = user?.role === 'instructor';
+  const publicCourses = Array.isArray(data) ? data : [];
+  const categories = ['All', ...new Set(publicCourses.map((c) => c.category).filter(Boolean))];
+
+  const filteredCourses = publicCourses.filter((course) => {
+    const matchesSearch =
+      course.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'All' || course.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
   return (
     <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh', paddingBottom: '5rem' }}>
       
-      {/* 👨‍🎓 STUDENT DASHBOARD HERO SECTION */}
-      {(user.role === 'student' || user.role === 'admin') && (
+      {/* 👨‍🎓 PUBLIC / STUDENT EXPLORE HERO SECTION */}
+      {!isInstructor && (
         <div style={{ 
           background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)', 
           color: 'white', padding: '4rem 5%', position: 'relative', overflow: 'hidden'
         }}>
-          {/* Background decorative elements */}
           <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '300px', height: '300px', background: 'rgba(79, 70, 229, 0.2)', borderRadius: '50%', filter: 'blur(40px)' }}></div>
           <div style={{ position: 'absolute', bottom: '-50px', left: '10%', width: '200px', height: '200px', background: 'rgba(56, 189, 248, 0.1)', borderRadius: '50%', filter: 'blur(30px)' }}></div>
           
@@ -85,22 +106,29 @@ const Dashboard = () => {
               </p>
             </div>
 
-            {/* Premium Search Bar (UI Only) */}
+            {/* Working Search Bar */}
             <div style={{ 
               display: 'flex', alignItems: 'center', background: 'white', padding: '0.5rem', 
               borderRadius: '0.75rem', maxWidth: '600px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)'
             }}>
               <Search size={22} color="#94a3b8" style={{ marginLeft: '1rem' }} />
-              <input type="text" placeholder="What do you want to learn?" style={{ 
-                flex: 1, padding: '1rem', border: 'none', outline: 'none', fontSize: '1.05rem', color: '#1e293b'
-              }} />
-              <button style={{ 
-                padding: '1rem 2rem', background: '#4f46e5', color: 'white', border: 'none', 
-                borderRadius: '0.5rem', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer',
-                transition: 'background 0.2s'
-              }} onMouseOver={(e)=>e.currentTarget.style.background='#4338ca'} onMouseOut={(e)=>e.currentTarget.style.background='#4f46e5'}>
-                Search
-              </button>
+              <input
+                type="text"
+                placeholder="What do you want to learn?"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ 
+                  flex: 1, padding: '1rem', border: 'none', outline: 'none', fontSize: '1.05rem', color: '#1e293b'
+                }}
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  style={{ padding: '0.5rem 1rem', background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', fontWeight: '600' }}
+                >
+                  Clear
+                </button>
+              )}
             </div>
             
           </div>
@@ -110,7 +138,7 @@ const Dashboard = () => {
       <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '2rem 5%' }}>
       
         {/* INSTRUCTOR DASHBOARD */}
-        {user.role === 'instructor' && (
+        {isInstructor && (
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
@@ -159,7 +187,7 @@ const Dashboard = () => {
                     <div style={{ padding: '1.5rem' }}>
                       <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontSize: '1.1rem', lineHeight: '1.4' }}>{course.title}</h3>
                       <p style={{ margin: '0 0 1.2rem 0', color: '#64748b', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                        <Users size={16} /> Students Enrolled: <span style={{ fontWeight: 'bold', color: '#0f172a' }}>{course.studentsEnrolled.length}</span>
+                        <Users size={16} /> Students Enrolled: <span style={{ fontWeight: 'bold', color: '#0f172a' }}>{course.studentsEnrolled?.length || 0}</span>
                       </p>
                       <Link to={`/course/${course._id}`} style={{ display: 'block', textAlign: 'center', padding: '0.8rem', background: '#f8fafc', color: '#10b981', fontWeight: '600', textDecoration: 'none', borderRadius: '0.5rem', border: '1px solid #10b981', transition: 'background 0.2s' }} onMouseOver={(e)=>{e.currentTarget.style.background='#10b981'; e.currentTarget.style.color='white'}} onMouseOut={(e)=>{e.currentTarget.style.background='#f8fafc'; e.currentTarget.style.color='#10b981'}}>
                         Manage Course
@@ -172,27 +200,44 @@ const Dashboard = () => {
           </>
         )}
 
-        {/* STUDENT DASHBOARD CONTENT */}
-        {(user.role === 'student' || user.role === 'admin') && (
+        {/* PUBLIC / STUDENT EXPLORE CONTENT */}
+        {!isInstructor && (
           <div style={{ marginTop: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
               <h2 style={{ margin: 0, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Compass size={24} color="#4f46e5" /> Trending Courses
+                <Compass size={24} color="#4f46e5" /> Explore Courses
               </h2>
               
-              {/* Optional Filter/Sort tags (UI only) */}
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <span style={{ padding: '0.4rem 1rem', background: '#e0e7ff', color: '#4f46e5', borderRadius: '50px', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer' }}>All</span>
-                <span style={{ padding: '0.4rem 1rem', background: 'white', border: '1px solid #e2e8f0', color: '#64748b', borderRadius: '50px', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer' }}>Web Dev</span>
-                <span style={{ padding: '0.4rem 1rem', background: 'white', border: '1px solid #e2e8f0', color: '#64748b', borderRadius: '50px', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer' }}>Design</span>
+              {/* Dynamic Category Filters */}
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                {categories.map((cat) => (
+                  <span
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    style={{
+                      padding: '0.4rem 1rem',
+                      background: selectedCategory === cat ? '#e0e7ff' : 'white',
+                      border: selectedCategory === cat ? '1px solid #4f46e5' : '1px solid #e2e8f0',
+                      color: selectedCategory === cat ? '#4f46e5' : '#64748b',
+                      borderRadius: '50px',
+                      fontSize: '0.85rem',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {cat}
+                  </span>
+                ))}
               </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
-              {data?.length === 0 ? (
-                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: '#64748b' }}>No courses are currently available. Please check back later!</div>
+              {filteredCourses.length === 0 ? (
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+                  No courses found. Please check back later!
+                </div>
               ) : (
-                data?.map((course) => (
+                filteredCourses.map((course) => (
                   <div key={course._id} style={{ background: '#ffffff', borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 4px 6px rgba(0,0,0,0.02)', border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', transition: 'box-shadow 0.3s, transform 0.3s' }}
                     onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 15px 30px -5px rgba(0,0,0,0.1)'; }}
                     onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.02)'; }}
@@ -205,7 +250,6 @@ const Dashboard = () => {
                     </div>
                     
                     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                      {/* Premium Course Metadata */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem', color: '#64748b', fontSize: '0.85rem' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}><Star size={14} color="#f59e0b" fill="#f59e0b" /> 4.8 (120)</span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}><Clock size={14} /> 10+ hrs</span>
@@ -223,7 +267,7 @@ const Dashboard = () => {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '1.2rem', marginTop: 'auto' }}>
                         <span style={{ fontWeight: '800', fontSize: '1.3rem', color: '#0f172a' }}>{course.price === 0 ? 'Free' : `₹${course.price}`}</span>
                         <Link to={`/course/${course._id}`} style={{ padding: '0.6rem 1.5rem', background: '#4f46e5', color: 'white', textDecoration: 'none', borderRadius: '50px', fontWeight: '600', fontSize: '0.9rem', transition: 'background 0.2s, transform 0.1s' }} onMouseOver={(e)=>e.currentTarget.style.background='#4338ca'} onMouseOut={(e)=>e.currentTarget.style.background='#4f46e5'} onMouseDown={(e)=>e.currentTarget.style.transform='scale(0.95)'} onMouseUp={(e)=>e.currentTarget.style.transform='scale(1)'}>
-                          Enroll
+                          {user?.role === 'admin' ? 'Manage' : 'Enroll'}
                         </Link>
                       </div>
                     </div>
