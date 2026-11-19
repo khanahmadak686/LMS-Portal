@@ -1,7 +1,6 @@
 import 'dotenv/config'; 
 import express from 'express';
 import cors from 'cors';
-import path from 'path';
 import http from 'http';
 import { Server } from 'socket.io';
 
@@ -25,14 +24,31 @@ connectDB();
 
 const app = express();
 
-// ✅ 1. Express CORS Setup for Vercel
+// ✅ 1. Dynamic CORS Setup (Localhost + All Vercel Deployments)
 const allowedOrigins = [
-  "http://localhost:5173", 
-  "https://lms-portal-ochre.vercel.app"
+  "http://localhost:5173",
+  "https://lms-portal-ochre.vercel.app",
+  "https://lms-portal-dhhjbwsse-khanahmadak686s-projects.vercel.app"
 ];
 
+const corsOriginHandler = (origin, callback) => {
+  // Allow requests with no origin (like mobile apps, curl, Postman)
+  if (!origin) return callback(null, true);
+
+  // Allow exact listed origins OR any Vercel preview/production domain for this project
+  if (
+    allowedOrigins.includes(origin) ||
+    origin.endsWith('.vercel.app')
+  ) {
+    return callback(null, true);
+  }
+
+  return callback(new Error('Not allowed by CORS'));
+};
+
 app.use(cors({
-  origin: allowedOrigins,
+  origin: corsOriginHandler,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
 
@@ -62,10 +78,10 @@ const PORT = process.env.PORT || 5000;
 
 const server = http.createServer(app);
 
-// ✅ 2. Socket.io CORS Setup for Vercel
+// ✅ 2. Socket.io CORS Setup
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins, 
+    origin: corsOriginHandler,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
   },
