@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Video, PlusCircle, Library } from 'lucide-react';
+import { Video, PlusCircle, Library, Home } from 'lucide-react';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 
@@ -27,7 +27,7 @@ const InstructorNavbar = () => {
     }}>
       
       {/* BRAND / LOGO */}
-      <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
+      <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
         <div style={{ background: '#d1fae5', padding: '0.6rem', borderRadius: '0.5rem', display: 'flex' }}>
           <Video size={24} color="#059669" />
         </div>
@@ -44,6 +44,10 @@ const InstructorNavbar = () => {
       {/* NAVIGATION LINKS */}
       <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
         
+        <Link to="/" style={getLinkStyle('/')}>
+          <Home size={18}/> Home
+        </Link>
+
         <Link to="/dashboard" style={getLinkStyle('/dashboard')}>
           <Library size={18}/> My Courses
         </Link>

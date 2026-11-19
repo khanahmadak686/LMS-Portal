@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Compass, BookHeart } from 'lucide-react';
+import { BookOpen, Compass, BookHeart, Home } from 'lucide-react';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 
@@ -7,7 +7,6 @@ const StudentNavbar = () => {
   const { user } = useContext(AuthContext);
   const location = useLocation();
 
-  // 🎨 Reusable style function: Jo page active hoga usko Blue highlight milega
   const getLinkStyle = (path) => {
     const isActive = location.pathname === path;
     return {
@@ -16,8 +15,8 @@ const StudentNavbar = () => {
       gap: '0.5rem',
       padding: '0.6rem 1.2rem',
       borderRadius: '0.5rem',
-      color: isActive ? '#4338ca' : '#4b5563', // Indigo vs Gray
-      backgroundColor: isActive ? '#e0e7ff' : 'transparent', // Soft Indigo bg
+      color: isActive ? '#4338ca' : '#4b5563',
+      backgroundColor: isActive ? '#e0e7ff' : 'transparent',
       textDecoration: 'none',
       fontWeight: '500',
       fontSize: '0.95rem',
@@ -33,7 +32,7 @@ const StudentNavbar = () => {
       padding: '1rem 5%', 
       backgroundColor: '#ffffff',
       boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-      borderTop: '4px solid #4f46e5', // Premium Indigo indicator at top
+      borderTop: '4px solid #4f46e5',
       position: 'sticky', 
       top: 0,
       zIndex: 1000
@@ -57,22 +56,22 @@ const StudentNavbar = () => {
       {/* 🧭 NAVIGATION LINKS */}
       <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
         
-        {/* ✅ BUG FIXED: Changed from /courses to /dashboard */}
+        <Link to="/" style={getLinkStyle('/')}>
+          <Home size={18}/> Home
+        </Link>
+
         <Link to="/dashboard" style={getLinkStyle('/dashboard')}>
           <Compass size={18}/> Explore
         </Link>
         
         {user ? (
           <>
-            {/* ✅ BUG FIXED: Changed from /my-learning to /profile */}
             <Link to="/profile" style={getLinkStyle('/profile')}>
               <BookHeart size={18}/> My Learning
             </Link>
 
-            {/* Divider Line */}
             <div style={{ width: '1px', height: '24px', backgroundColor: '#e5e7eb', margin: '0 0.5rem' }}></div>
 
-            {/* 👤 PROFILE CHIP (For Logged In Students) */}
             <Link to="/profile" style={{
               display: 'flex', 
               alignItems: 'center', 
@@ -112,10 +111,8 @@ const StudentNavbar = () => {
           </>
         ) : (
           <>
-            {/* Divider Line before Auth Buttons */}
             <div style={{ width: '1px', height: '24px', backgroundColor: '#e5e7eb', margin: '0 0.5rem' }}></div>
 
-            {/* 🔒 AUTH BUTTONS (For Guests) */}
             <Link to="/login" style={{
               padding: '0.6rem 1.2rem',
               color: '#4b5563',

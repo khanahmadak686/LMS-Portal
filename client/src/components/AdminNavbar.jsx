@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Shield, LayoutDashboard, PlusCircle, UserCheck } from 'lucide-react'; // ✅ UserCheck import kiya
+import { Shield, LayoutDashboard, PlusCircle, UserCheck, Home } from 'lucide-react';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 
@@ -8,7 +8,6 @@ const AdminNavbar = () => {
   const location = useLocation();
 
   const getLinkStyle = (path) => {
-    // Exact match ya path start check karne ke liye
     const isActive = location.pathname === path;
     return {
       display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem',
@@ -28,7 +27,7 @@ const AdminNavbar = () => {
     }}>
       
       {/* 🚀 BRAND / LOGO SECTION */}
-      <Link to="/admin" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
+      <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
         <div style={{ background: '#fee2e2', padding: '0.6rem', borderRadius: '0.5rem', display: 'flex' }}>
           <Shield size={24} color="#dc2626" />
         </div>
@@ -45,11 +44,14 @@ const AdminNavbar = () => {
       {/* 🧭 NAVIGATION LINKS */}
       <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
         
+        <Link to="/" style={getLinkStyle('/')}>
+          <Home size={18}/> Home
+        </Link>
+
         <Link to="/admin" style={getLinkStyle('/admin')}>
           <LayoutDashboard size={18}/> Overview
         </Link>
 
-        {/* 🟢 NAYA ROLE APPROVAL LINK */}
         <Link to="/admin" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })} style={{
           display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem',
           borderRadius: '0.5rem', color: '#4b5563', textDecoration: 'none', 
@@ -74,7 +76,6 @@ const AdminNavbar = () => {
           <PlusCircle size={18} /> Add Course
         </Link>
 
-        {/* Divider Line */}
         <div style={{ width: '1px', height: '24px', backgroundColor: '#e5e7eb', margin: '0 0.5rem' }}></div>
 
         {/* 👤 PROFILE CHIP */}

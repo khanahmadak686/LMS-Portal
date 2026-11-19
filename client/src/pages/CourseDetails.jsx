@@ -40,25 +40,35 @@ const CourseDetails = () => {
   const fetchCourseData = async () => {
     try {
       const config = user ? { headers: { Authorization: `Bearer ${user.token}` } } : {};
-      const requests = [
-        axios.get(`${API_URL}/courses/${id}`),
-        axios.get(`${API_URL}/lessons/${id}`)
-      ];
-      if (user) {
-        requests.push(axios.get(`${API_URL}/progress/${id}`, config));
+
+      // 1. Primary Course Fetch
+      const courseRes = await axios.get(`${API_URL}/courses/${id}`);
+      setCourse(courseRes.data);
+
+      // 2. Lessons Fetch (Safe fallback if empty or 404)
+      try {
+        const lessonsRes = await axios.get(`${API_URL}/lessons/${id}`);
+        setLessons(Array.isArray(lessonsRes.data) ? lessonsRes.data : []);
+      } catch (lessonErr) {
+        console.warn("No lessons found yet:", lessonErr);
+        setLessons([]);
       }
 
-      const responses = await Promise.all(requests);
-      setCourse(responses[0].data);
-      setLessons(responses[1].data);
-      
-      if (user && responses[2]) {
-        setCompletedLessons(responses[2].data.completedLessons || []);
+      // 3. Progress Fetch (Only for logged-in users, safe fallback)
+      if (user) {
+        try {
+          const progressRes = await axios.get(`${API_URL}/progress/${id}`, config);
+          setCompletedLessons(progressRes.data?.completedLessons || []);
+        } catch (progErr) {
+          console.warn("No progress record found yet:", progErr);
+          setCompletedLessons([]);
+        }
       }
-      setLoading(false);
     } catch (err) {
+      console.error("Failed to fetch course:", err);
+      toast.error(err.response?.data?.message || 'Failed to load course details');
+    } finally {
       setLoading(false);
-      toast.error('Failed to load course details');
     }
   };
 
@@ -73,9 +83,9 @@ const CourseDetails = () => {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
         await axios.delete(`${API_URL}/courses/${id}`, config);
         toast.success("Course deleted successfully");
-        navigate('/dashboard');
+        navigate(user?.role === 'admin' ? '/admin' : '/dashboard');
       } catch (error) {
-        toast.error("Failed to delete course");
+        toast.error(error.response?.data?.message || "Failed to delete course");
       }
     }
   };
@@ -185,11 +195,25 @@ const CourseDetails = () => {
     </div>
   );
 
-  if (!course) return <div className="page-container"><h2>Course not found.</h2></div>;
+  if (!course) {
+    return (
+      <div style={{ textAlign: 'center', padding: '5rem 2rem' }}>
+        <h2 style={{ color: '#1e293b', marginBottom: '1rem' }}>Course not found.</h2>
+        <Link to="/" style={{ color: '#4f46e5', fontWeight: '600', textDecoration: 'none' }}>
+          ← Return to Home
+        </Link>
+      </div>
+    );
+  }
 
-  const isEnrolled = course.studentsEnrolled?.includes(user?._id);
-  const isCourseOwner = user?._id === course.instructor?._id;
+  const isEnrolled = course.studentsEnrolled?.some(
+    (studentId) => (typeof studentId === 'object' ? studentId._id : studentId) === user?._id
+  );
+  const courseInstructorId = typeof course.instructor === 'object' ? course.instructor?._id : course.instructor;
+  const isCourseOwner = user?._id === courseInstructorId || user?.role === 'admin';
   const progressPercentage = lessons.length === 0 ? 0 : Math.round((completedLessons.length / lessons.length) * 100);
+  const backLink = !user ? '/' : user.role === 'admin' ? '/admin' : '/dashboard';
+  const backLabel = !user ? 'Back to Home' : user.role === 'admin' ? 'Back to Admin Panel' : 'Back to Dashboard';
 
   return (
     <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh', paddingBottom: '4rem' }}>
@@ -198,8 +222,8 @@ const CourseDetails = () => {
       <div style={{ background: 'linear-gradient(to right, #0f172a, #1e293b)', color: 'white', padding: '3rem 5%', borderBottom: '4px solid #4f46e5' }}>
         <div style={{ width: '100%', maxWidth: '1100px', margin: '0 auto' }}>
           
-          <Link to="/dashboard" style={{ color: '#94a3b8', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', marginBottom: '1.5rem', transition: 'color 0.2s' }} onMouseOver={(e)=>e.currentTarget.style.color='white'} onMouseOut={(e)=>e.currentTarget.style.color='#94a3b8'}>
-            <ArrowLeft size={18} /> Back to Dashboard
+          <Link to={backLink} style={{ color: '#94a3b8', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', marginBottom: '1.5rem', transition: 'color 0.2s' }} onMouseOver={(e)=>e.currentTarget.style.color='white'} onMouseOut={(e)=>e.currentTarget.style.color='#94a3b8'}>
+            <ArrowLeft size={18} /> {backLabel}
           </Link>
 
           <div style={{ display: 'flex', gap: '3rem', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -213,7 +237,7 @@ const CourseDetails = () => {
                 {course.description}
               </p>
               
-              <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                 <h2 style={{ color: '#fff', margin: 0, fontSize: '2.2rem' }}>
                   {course.price === 0 ? 'Free' : `₹${course.price}`}
                 </h2>
@@ -366,7 +390,7 @@ const CourseDetails = () => {
           <CourseDiscussion courseId={id} user={user} />
         )}
 
-        {/* 👨‍🏫 INSTRUCTOR: ADD LESSON DASHBOARD WIDGET */}
+        {/* 👨‍🏫 INSTRUCTOR / ADMIN: ADD LESSON DASHBOARD WIDGET */}
         {isCourseOwner && (
           <div style={{ marginTop: '4rem', padding: '2.5rem', background: '#ffffff', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
             <h2 style={{ marginBottom: '2rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
